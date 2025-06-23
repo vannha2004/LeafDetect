@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân Loại Bệnh Cây Trồng - Nông Nghiệp Thông Minh</title>
+    <link href="./bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container py-5">
+        <div class="glass-card">
+            <div class="text-center mb-4">
+                <h1 class="display-4 fw-bold text-primary">
+                    <i class="bi bi-flower2 me-2"></i> Phân Loại Bệnh Cây Trồng
+                </h1>
+                <p class="lead text-muted">Ứng dụng trí tuệ nhân tạo giúp nhận diện bệnh cây trồng và đưa ra biện pháp xử lý</p>
+            </div>
+
+            <ul class="nav nav-tabs mb-4" id="appTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="predict-tab" data-bs-toggle="tab" data-bs-target="#predict" type="button" role="tab">
+                        <i class="bi bi-search me-1"></i> Phân tích
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                        <i class="bi bi-clock-history me-1"></i> Lịch sử
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="appTabsContent">
+                <div class="tab-pane fade show active" id="predict" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Tải lên hình ảnh</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="file-upload-wrapper mb-3 pulse-animation" id="uploadArea">
+                                        <input type="file" class="form-control d-none" id="imageUpload" accept="image/*">
+                                        <button class="btn btn-outline-primary" onclick="document.getElementById('imageUpload').click()">
+                                            <i class="bi bi-cloud-arrow-up me-2"></i> Chọn hình ảnh
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="modelSelect" class="form-label">
+                                            <i class="bi bi-gear me-1"></i> Chọn mô hình phân tích
+                                        </label>
+                                        <select class="form-select" id="modelSelect">
+                                            <option value="cnn">Mô hình CNN</option>
+                                            <option value="mobilenetv2">Mô hình MobileNetV2</option>
+                                            <option value="resnet">Mô hình ResNet</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <button id="classifyBtn" class="btn btn-gradient btn-lg w-100 py-3">
+                                        <i class="bi bi-magic me-2"></i> PHÂN TÍCH NGAY
+                                    </button>
+                                    
+                                    <div class="position-relative mt-4" id="imagePreviewWrapper">
+                                        <img id="previewImage" class="img-fluid d-none" alt="Ảnh xem trước">
+                                        <canvas id="diseaseCanvas" class="img-fluid"></canvas>
+                                        <div id="noImagePlaceholder" class="text-muted p-4">
+                                            <i class="bi bi-image fs-1 d-block mb-2"></i>
+                                            <span>Chưa có hình ảnh được tải lên</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>Kết quả phân tích</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-4" id="resultPlaceholder">
+                                        <i class="bi bi-robot fs-1 text-muted mb-3"></i>
+                                        <h5 class="text-muted">Kết quả phân tích sẽ hiển thị tại đây</h5>
+                                        <p class="text-muted">Vui lòng tải lên hình ảnh và nhấn nút phân tích</p>
+                                    </div>
+                                    
+                                    <div id="resultContent">
+                                        <div class="d-flex justify-content-center mb-4">
+                                            <span class="prediction-badge" id="predictionText"></span>
+                                        </div>
+                                        
+                                        <div id="warningMessage" class="alert alert-warning d-none" role="alert"></div>
+                                        
+                                        <div class="row g-3 mt-3" id="treatmentCards">
+                                            <div class="col-md-6">
+                                                <div class="treatment-card p-3 h-100">
+                                                    <h6 class="d-flex align-items-center">
+                                                        <i class="bi bi-shield-shaded text-success me-2"></i> Biện pháp phòng ngừa
+                                                    </h6>
+                                                    <p id="preventionVi" class="text-muted mb-0">Chưa có thông tin</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="treatment-card p-3 h-100">
+                                                    <h6 class="d-flex align-items-center">
+                                                        <i class="bi bi-heart-pulse text-danger me-2"></i> Biện pháp điều trị
+                                                    </h6>
+                                                    <p id="treatmentVi" class="text-muted mb-0">Chưa có thông tin</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-4" id="chartWrapper">
+                                            <h6 class="d-flex align-items-center mb-3">
+                                                <i class="bi bi-bar-chart-line text-info me-2"></i> Tỉ lệ dự đoán
+                                            </h6>
+                                            <canvas id="predictionChart" height="250"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="history" role="tabpanel">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Lịch sử phân tích</h5>
+                            <button id="clearHistoryBtn" class="btn btn-outline-light btn-sm">
+                                <i class="bi bi-trash me-1"></i> Xóa lịch sử
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive scrollable-table">
+                                <table class="table table-hover mb-0" id="historyTable">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th width="150">Ngày</th>
+                                            <th width="80">Hình ảnh</th>
+                                            <th>Bệnh</th>
+                                            <th>Phòng ngừa</th>
+                                            <th>Điều trị</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                                Chưa có lịch sử phân tích nào
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-white mt-5 py-3">
+        <div class="container">
+            <p class="mb-0">© 2023 Nông Nghiệp Thông Minh - Ứng dụng AI trong nông nghiệp</p>
+        </div>
+    </footer>
+
+    <script src="./jquery-3.6.0.min.js"></script>
+    <script src="./bootstrap.bundle.min.js"></script>
+    <script src="./chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
